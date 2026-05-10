@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STEIN // V18_5/9/2025</title>
+    
+    <style>
+        :root { --main: #ff4d4d; --bg: #0d0d0d; --text: #e0e0e0; --grid-line: rgba(255, 77, 77, 0.4); }
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; overflow: hidden; background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); background-size: 40px 40px; }
+        header { height: 60px; background: #000; border-bottom: 4px solid var(--main); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 9999; }
+        .nav-btn { color: var(--main); font-weight: 900; cursor: pointer; padding: 10px; font-size: 0.75rem; text-transform: uppercase; }
+        .main-container { display: grid; grid-template-columns: 280px 1fr; height: 100vh; padding-top: 60px; }
+
+        /* SIDEBAR & MINI CAL */
+        .sidebar { background: rgba(0,0,0,0.9); border-right: 2px solid var(--main); padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .label { font-size: 0.65rem; color: var(--main); font-weight: bold; letter-spacing: 3px; border-bottom: 1px solid var(--main); padding-bottom: 5px; }
+        .mini-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; border: 1px solid #444; padding: 5px; background: #000; }
+        .m-day { font-size: 0.6rem; padding: 5px; border: 1px solid #222; text-align: center; color: #666; }
+        .m-day.active { background: var(--main); color: #000; font-weight: bold; }
+
+        /* ACADEMY FULL CALENDAR */
+        .full-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid var(--main); background: rgba(0,0,0,0.5); }
+        .f-day { min-height: 80px; border: 1px solid #333; padding: 10px; font-size: 0.8rem; position: relative; }
+        .f-day:hover { background: rgba(255, 77, 77, 0.1); }
+        .event-dot { width: 8px; height: 8px; background: var(--main); border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+        .scroller-frame { height: 150px; border: 1px solid var(--main); overflow: hidden; background: #000; }
+        #scroller-inner { display: flex; flex-direction: column; animation: scrollUp 15s linear infinite; }
+        #scroller-inner img { width: 100%; border-bottom: 1px solid var(--main); }
+        @keyframes scrollUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+
+        .content-feed { padding: 30px; overflow-y: auto; height: calc(100vh - 60px); }
+        .page { display: none; }
+        .active-page { display: block; }
+        .card { background: rgba(0,0,0,0.85); border: 1px solid #444; border-left: 10px solid var(--main); padding: 20px; margin-bottom: 25px; position: relative; }
+        .card::after { content: attr(data-tag); position: absolute; top: -10px; left: 10px; font-size: 0.6rem; background: var(--main); color: #000; padding: 2px 8px; font-weight: bold; }
+        .btn { background: var(--main); color: #000; border: none; padding: 12px; font-weight: 900; cursor: pointer; width: 100%; margin-top: 10px; text-transform: uppercase; }
+        input, textarea { background: rgba(0,0,0,0.9); border: 1px solid #666; color: #fff; padding: 10px; width: 100%; margin-top: 10px; }
+        .admin-only { display: none; }
+    </style>
+</head>
+<body onload="init()">
+
+    <header>
+        <div style="font-weight:900; color:var(--main); letter-spacing: 2px;">STEIN_HUB // V18_5/9/2025</div>
+        <nav style="display:flex;">
+            <div class="nav-btn" onclick="showPage('home')">FEED</div>
+            <div class="nav-btn" onclick="showPage('About Me')">About Me</div>
+            <div class="nav-btn" onclick="showPage('Pomodoro')">Pomodoro</div>
+            <div class="nav-btn" onclick="showPage('system')">System</div>
+        </nav>
+                        <div id="login-tag" class="nav-btn" onclick="login()">[ LOGIN ]</div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="label">GALLERY_SYNC</div>
+            <div class="scroller-frame"><div id="scroller-inner"></div></div>
+            
+            <div class="label">DEADLINE_MINI_MAP</div>
+            <div id="m-cal" class="mini-cal"></div>
+
+            <div class="label">Time</div>
+            <div id="clock" style="font-size:1.5rem; color:var(--main); text-align:center;">00:00:00</div>
+        </aside>
+
+        <main class="content-feed">
+            <div id="home" class="page active-page">
+                <div class="card" data-tag="IDENT"><h1>KAITLYN STEIN</h1><p id="p-bio">Hello welcome to my website</p></div>
+                <div id="forum-display"></div>
+            </div>
+
+            <div id="Pomodoro" class="page">
+                <div class="card" data-tag="SCHEDULE">
+                    <div class="label">MONTHLY VIEW</div>
+                    <div id="full-cal" class="full-cal-grid"></div>
+                </div>
+                <p>hi</p>
+            </div>
+
+            <div id="system" class="page">
+                <div class="card" data-tag="UPLOAD">
+                    <input type="text" id="art-url" placeholder="Gallery Image URL">
+                    <button class="btn" onclick="addArt()">SYNC TO GALLERY</button>
+                </div>
+                <div class="admin-only card" data-tag="FEED">
+                    <textarea id="f-text" placeholder="Post content..."></textarea>
+                    <button class="btn" onclick="addPost()">BROADCAST</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+  
+    function buildCalendars() {
+        const today = new Date().getDate();
+        
+        // Mini Cal (Sidebar)
+        let mHtml = '';
+        for(let i=1; i<=31; i++) {
+            let activeClass = (i === today) ? 'active' : '';
+            mHtml += `<div class="m-day ${activeClass}">${i}</div>`;
+        }
+        document.getElementById('m-cal').innerHTML = mHtml;
+
+        // Full Cal (Academy)
+        let fHtml = '';
+        for(let i=1; i<=31; i++) {
+            fHtml += `<div class="f-day"><strong>${i}</strong><br><small>No Tasks</small></div>`;
+        }
+        document.getElementById('full-cal').innerHTML = fHtml;
+    }
+
+    function addArt() { db.collection("gallery").add({ url: document.getElementById('art-url').value, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); }
+    function addPost() { db.collection("posts").add({ text: document.getElementById('f-text').value, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); }
+    function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page')); document.getElementById(id).classList.add('active-page'); }
+    function login() { if(prompt("KEY:") === "1234") document.querySelectorAll('.admin-only').forEach(e => e.style.display = 'block'); }
+</script>
+</body>
+</html>
